@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_seller_app/core/widgets/custom_text_widgets.dart';
+import 'package:pos_seller_app/data/services/auth_service.dart';
 
 import '../../../../core/themes/app_colors.dart';
 
 class LoginScreen extends StatelessWidget {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   LoginScreen({super.key});
 
@@ -214,8 +216,27 @@ class LoginScreen extends StatelessWidget {
                             ],
                           ),
                           child: ElevatedButton(
-                            onPressed: () {
-                              context.go('/bottomNavScreen');
+                            onPressed: () async {
+                              final email = usernameController.text;
+                              final password = passwordController.text;
+
+                              if (email.isEmpty || password.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Please fill in all fields')),
+                                );
+                                return;
+                              }
+
+                              // Show loading indicator or handle it via Bloc
+                              final result = await _authService.login(email, password);
+
+                              if (result['success']) {
+                                context.go('/bottomNavScreen');
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(result['message'])),
+                                );
+                              }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.transparent,
