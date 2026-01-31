@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pos_seller_app/data/services/auth_service.dart';
 
 import '../../../../core/themes/app_colors.dart';
 
@@ -8,6 +9,7 @@ class SignupScreen extends StatelessWidget {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+  final AuthService _authService = AuthService();
 
   SignupScreen({super.key});
 
@@ -159,8 +161,38 @@ class SignupScreen extends StatelessWidget {
                             ],
                           ),
                           child: ElevatedButton(
-                            onPressed: () {
-                              // Implement signup logic
+                            onPressed: () async {
+                              final name = nameController.text;
+                              final email = emailController.text;
+                              final password = passwordController.text;
+                              final confirmPassword = confirmPasswordController.text;
+
+                              if (name.isEmpty || email.isEmpty || password.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Please fill in all fields')),
+                                );
+                                return;
+                              }
+
+                              if (password != confirmPassword) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Passwords do not match')),
+                                );
+                                return;
+                              }
+
+                              final result = await _authService.signup(name, email, password);
+
+                              if (result['success']) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Account created! Please login.')),
+                                );
+                                Navigator.pop(context);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(result['message'])),
+                                );
+                              }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.transparent,
